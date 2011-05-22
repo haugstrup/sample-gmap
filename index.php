@@ -11,12 +11,12 @@ $baseAPI = PodioBaseAPI::instance(CLIENT_ID, CLIENT_SECRET);
 if (!isset($_SESSION['access_token'])) {
   $oauth->getAccessToken('password', array('username' => USERNAME, 'password' => PASSWORD));
   $api = new PodioAPI();
-  $_SESSION['access_token'] = $oauth->access_token;
-  $_SESSION['refresh_token'] = $oauth->refresh_token;
+  $_SESSION['gmap_access_token'] = $oauth->access_token;
+  $_SESSION['gmap_refresh_token'] = $oauth->refresh_token;
 }
 else {
-  $oauth->access_token = $_SESSION['access_token'];
-  $oauth->refresh_token = $_SESSION['refresh_token'];
+  $oauth->access_token = $_SESSION['gmap_access_token'];
+  $oauth->refresh_token = $_SESSION['gmap_refresh_token'];
   $api = new PodioAPI();
 }
 
@@ -28,27 +28,11 @@ $markers = array();
 foreach ($items['items'] as $item) {
   $marker = array(
     'title' => $item['title'],
+    'description' => '',
   );
   foreach ($item['fields'] as $field) {
     if ($field['type'] == 'location') {
       $marker['address'] = $field['values'][0]['value'];
-    }
-    if ($field['type'] == 'state') {
-      $marker['type'] = $field['values'][0]['value'];
-      switch ($marker['type']) {
-        case 'Event location':
-          $marker['icon'] = 'public/conference.png';
-          break;
-        case 'Accomodation':
-          $marker['icon'] = 'public/hotel.png';
-          break;
-        case 'Transportation hub':
-          $marker['icon'] = 'public/train.png';
-          break;
-        default:
-          $marker['icon'] = 'public/sight.png';
-          break;
-      }
     }
     if ($field['type'] == 'text') {
       $marker['description'] = $field['values'][0]['value'];
@@ -88,8 +72,7 @@ foreach ($items['items'] as $item) {
           var marker = new google.maps.Marker({
             map: map, 
             position: results[0].geometry.location,
-            title: current_marker['title'],
-            icon: current_marker['icon']
+            title: current_marker['title']
           });
           
           // Add info window
